@@ -53,17 +53,17 @@ Definition apply_Fun {A B : Type} (f : Fun A B) : A -> B := f.
 #[global] Instance sum_inr : Inr Fun sum := @inr.
 
 (** ** The [pair] product. *)
-#[global] Instance Pair_Fun : Pair Fun prod :=
+#[global] Polymorphic Instance Pair_Fun : Pair Fun prod :=
   fun {A B C} l r c => (l c, r c).
 
-#[global] Instance Fst_Fun : Fst Fun prod := @fst.
-#[global] Instance Snd_Fun : Snd Fun prod := @snd.
+#[global] Polymorphic Instance Fst_Fun : Fst Fun prod := @fst.
+#[global] Polymorphic Instance Snd_Fun : Snd Fun prod := @snd.
 
 
 (** ** Cartesian closure. *)
 (** The [exponential] is just [_ -> _], which is a just another name for [Fun] *)
-#[global] Instance Apply_Fun : Apply Fun prod Fun :=
+#[global] Polymorphic Instance Apply_Fun : Apply Fun prod Fun :=
     fun {A B} '(f, b) => f b.
-  
-#[global] Instance Curry_Fun : Curry Fun prod Fun :=
+
+#[global] Polymorphic Instance Curry_Fun : Curry Fun prod Fun :=
   fun {A B C} f => fun c a => f (c, a).

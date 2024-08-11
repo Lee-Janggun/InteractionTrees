@@ -73,19 +73,19 @@ Proof.
 Qed.
 
 #[global]
-Instance PairFst_Fun : PairFst Fun prod.
+Polymorphic Instance PairFst_Fun : PairFst Fun prod.
 Proof.
   split.
 Qed.
 
 #[global]
-Instance PairSnd_Fun : PairSnd Fun prod.
+Polymorphic Instance PairSnd_Fun : PairSnd Fun prod.
 Proof.
   split.
 Qed.
 
 #[global]
-Instance PairUniversal_Fun : PairUniversal Fun prod.
+Polymorphic Instance PairUniversal_Fun : PairUniversal Fun prod.
 Proof.
   repeat intro.
   unfold pair_, Pair_Fun. specialize (H a0). specialize (H0 a0). rewrite <- H.
@@ -94,24 +94,24 @@ Proof.
 Qed.
 
 #[global]
-Instance Proper_pair_Fun : forall a b c, Proper (eq2 ==> eq2 ==> eq2) (@pair_ _ _ _ _ a b c).
+Polymorphic Instance Proper_pair_Fun : forall a b c, Proper (eq2 ==> eq2 ==> eq2) (@pair_ _ _ _ _ a b c).
 Proof.
   intros ? ? ? f1 f2 F g1 g2 G c.
   unfold pair_, Pair_Fun. rewrite F. rewrite G. reflexivity.
-Qed.  
+Qed.
 
 Section Products.
   Existing Instance Bimap_Product.
 
   #[global]
-  Instance BimapId_Fun_prod : BimapId Fun prod.
+  Polymorphic Instance BimapId_Fun_prod : BimapId Fun prod.
   Proof.
     repeat intro.
     destruct a0. reflexivity.
   Qed.
-   
+
   #[global]
-  Instance BimapCat_Fun_prod : BimapCat Fun prod.
+  Polymorphic Instance BimapCat_Fun_prod : BimapCat Fun prod.
   Proof.
     repeat intro.
     destruct a.
@@ -119,7 +119,7 @@ Section Products.
   Qed.
 
   #[global]
-  Instance BimapProper_Fun_prod :
+  Polymorphic Instance BimapProper_Fun_prod :
     forall A B C D,
       @Proper ((A -> C) -> (B -> D) -> (A * B -> C * D)) (eq2 ==> eq2 ==> eq2) bimap.
   Proof.
@@ -128,7 +128,7 @@ Section Products.
   Qed.
 
   #[global]
-  Instance Bifunctor_Fun_prod : Bifunctor Fun prod.
+  Polymorphic Instance Bifunctor_Fun_prod : Bifunctor Fun prod.
   Proof.
     constructor.
     - exact BimapId_Fun_prod.
@@ -137,24 +137,24 @@ Section Products.
   Qed.
 
   #[global]
-  Instance Product_Fun : Product Fun prod.
+  Polymorphic Instance Product_Fun : Product Fun prod.
   Proof.
     constructor; typeclasses eauto.
-  Qed.  
-  
+  Qed.
+
 End Products.
 
 Section CartesianClosure.
 
   #[global]
-  Instance CurryApply_Fun : CurryApply Fun prod Fun.
+  Polymorphic Instance CurryApply_Fun : CurryApply Fun prod Fun.
   Proof.
     red. repeat intro. destruct a0. unfold curry_, Curry_Fun, cat, Cat_Fun. reflexivity.
   Qed.
 
   (* Properness of currying requires(?) functional extensionality *)
   #[global]
-  Instance CartesianClosed_Fun : CartesianClosed Fun unit prod Fun.
+  Polymorphic Instance CartesianClosed_Fun : CartesianClosed Fun unit prod Fun.
   Proof.
     constructor; try typeclasses eauto.
     repeat intro. unfold curry_, Curry_Fun. apply functional_extensionality.
