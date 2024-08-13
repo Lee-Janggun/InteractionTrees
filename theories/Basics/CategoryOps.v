@@ -408,16 +408,16 @@ Section CartesianClosed.
 
   (* SAZ: I'm on the fence about what order the arguments for [EXP] should be:
      B^A suggests one order, but A => B suggests the other. I went with the latter. *)
-  Class Apply : Type :=
+  Polymorphic Class Apply : Type :=
     apply_ : forall a b, C (PROD (EXP a b) a) b.
 
-  Class Curry : Type :=
+  Polymorphic Class Curry : Type :=
     curry_ : forall a b c, C (PROD c a) b -> C c (EXP a b).
 
 End CartesianClosed.
 
 Arguments apply_ {obj C PROD EXP _ a b}.
-Arguments curry_ {obj C PROD EXP _ a b c}.  
+Arguments curry_ {obj C PROD EXP _ a b c}.
 
 Section Dagger.
   Context {obj : Type} (C : Hom obj).
