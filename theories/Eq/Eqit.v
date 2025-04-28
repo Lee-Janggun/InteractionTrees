@@ -15,8 +15,6 @@
  *)
 
 (* begin hide *)
-Set Warnings "-deprecated-hint-rewrite-without-locality".
-
 From Coq Require Import
      Structures.Orders (* Hint Unfold is_true *)
      Program
@@ -838,7 +836,7 @@ Qed.
 #[global] Instance Transitive_eqit {E : Type -> Type} {R: Type} (RR : R -> R -> Prop) (b1 b2: bool):
   Transitive RR -> Transitive (@eqit E _ _ RR b1 b2).
 Proof.
-  red; intros. eapply eqit_mon, eqit_trans; eauto using (trans_rcompose RR).
+  red; intros. assert (TRANS := trans_rcompose RR). eapply eqit_mon, eqit_trans; eauto.
 Qed.
 
 #[global] Instance Transitive_eqit_eq {E : Type -> Type} {R: Type} (b1 b2: bool):
@@ -861,7 +859,7 @@ Qed.
 
 #[global] Instance Transitive_eutt {E R RR} : Transitive RR -> Transitive (@eutt E R R RR).
 Proof.
-  red; intros. eapply eqit_mon, eqit_trans; eauto using (trans_rcompose RR).
+  red; intros. assert (TRANS := trans_rcompose RR). eapply eqit_mon, eqit_trans; eauto.
 Qed.
 
 #[global] Instance Equivalence_eutt {E R RR} : Equivalence RR -> Equivalence (@eutt E R R RR).
@@ -940,7 +938,8 @@ Qed.
   Proper (euttge RS ==> flip (euttge RS) ==> flip impl)
          (@eqit E R R RS true false).
 Proof.
-  repeat intro. do 2 (eapply eqit_mon, eqit_trans; eauto using (trans_rcompose RS)).
+  repeat intro. assert (HYP := trans_rcompose RS TRANS).
+  do 2 (eapply eqit_mon, eqit_trans; eauto).
 Qed.
 
 #[global] Instance euttge_cong_euttge_eq {E R}:
@@ -1282,14 +1281,14 @@ Proof.
   rewrite bind_tau; reflexivity.
 Qed.
 
-Hint Rewrite @bind_ret_l : itree.
-Hint Rewrite @bind_ret_r : itree.
-Hint Rewrite @bind_tau : itree.
-Hint Rewrite @bind_vis : itree.
-Hint Rewrite @bind_map : itree.
-Hint Rewrite @map_ret : itree.
-Hint Rewrite @map_tau : itree.
-Hint Rewrite @bind_bind : itree.
+#[global] Hint Rewrite @bind_ret_l : itree.
+#[global] Hint Rewrite @bind_ret_r : itree.
+#[global] Hint Rewrite @bind_tau : itree.
+#[global] Hint Rewrite @bind_vis : itree.
+#[global] Hint Rewrite @bind_map : itree.
+#[global] Hint Rewrite @map_ret : itree.
+#[global] Hint Rewrite @map_tau : itree.
+#[global] Hint Rewrite @bind_bind : itree.
 
 (** ** Tactics *)
 

@@ -1,4 +1,7 @@
-# Interaction Trees [![Build Status](https://travis-ci.com/DeepSpec/InteractionTrees.svg?branch=master)](https://travis-ci.com/DeepSpec/InteractionTrees)
+# Interaction Trees
+
+[![project chat](https://img.shields.io/badge/zulip-join_chat-brightgreen.svg)](https://coq.zulipchat.com/#narrow/stream/394939-Interaction-Trees)
+[![BUILD](https://circleci.com/gh/DeepSpec/InteractionTrees.svg?style=shield)](https://circleci/gh/DeepSpec/InteractionTrees)
 
 A Library for Representing Recursive and Impure Programs in Coq
 
@@ -10,6 +13,10 @@ For a quick overview of the core features of the library, see
 See also [the tutorial](./tutorial/README.md).
 
 [The coqdoc documentation for this library is available here.](https://deepspec.github.io/InteractionTrees/)
+
+Join the Interaction Trees channel on
+[Rocq's Zulip server](https://coq.zulipchat.com/#narrow/channel/394939-Interaction-Trees)
+if you have any questions.
 
 ### Top-level modules
 
@@ -65,17 +72,14 @@ in [`Basics.FunctionFacts.CartesianClosed_Fun`](./theories/Basics/FunctionFacts.
 
 ### Excluded middle and choice
 
-The theory of traces (`theories/ITrace/`)—which Dijkstra monads for ITree
-depend on (`theories/Dijkstra`)—assumes excluded middle, to decide whether an
+In the `itree-extra` library, the theory of traces (`extra/ITrace/`)—which Dijkstra monads for ITree
+depend on (`extra/Dijkstra`)—assumes excluded middle, to decide whether an
 itree diverges, and a type-theoretic axiom of choice, which provides a strong
 excluded middle in propositional contexts:
 
-```
+```coq
 Theorem classicT_inhabited : inhabited (forall T : Type, T + (T -> False)).
 ```
-
-Remark: excluded middle implies UIP, but we still consider UIP as a separate
-dependency because it's used in a more central part of the library.
 
 ### Exported: strong bisimulation is propositional equality
 
