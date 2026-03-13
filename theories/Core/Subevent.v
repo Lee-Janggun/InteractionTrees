@@ -3,12 +3,14 @@
 (** Notations to handle large sums and classes for extensible effects. *)
 
 (* begin hide *)
+From stdpp Require Import prelude.
 From ITree Require Import
      Basics.Basics
      Basics.CategoryOps
      Core.ITreeDefinition
      Indexed.Sum
      Indexed.Function.
+From stdpp Require Import options.
 (* end hide *)
 
 (** Automatic application of commutativity and associativity for
@@ -97,7 +99,7 @@ Instance Embeddable_itree {E F : Type -> Type} {R : Type}
 
 (* Some rewriting lemmas sometimes expose [resum]. The following lemmas help reshape the goal properly *)
 Lemma resum_to_subevent : forall (E F : Type -> Type) H T e,
-    @resum _ IFun E F H T e = subevent _ e.
+  @resum _ IFun E F H T e = subevent _ e.
 Proof.
   intros; reflexivity.
 Qed.

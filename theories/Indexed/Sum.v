@@ -4,8 +4,8 @@
     using this sum type. *)
 
 (* begin hide *)
-From ITree Require Import
-     Basics.Basics.
+(* From ITree Require Import
+     Basics.Basics. *)
 
 Set Implicit Arguments.
 Set Contextual Implicit.

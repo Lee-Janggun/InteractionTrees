@@ -12,8 +12,11 @@
 
 (* begin hide *)
 From Coq Require Import Morphisms.
+From stdpp Require Import prelude.
 
 From ITree Require Import Core.ITreeDefinition.
+
+From stdpp Require Import options.
 
 Set Implicit Arguments.
 (* end hide *)
@@ -100,34 +103,34 @@ End observing_relations.
 (** ** Unfolding lemmas for [bind] *)
 
 Lemma observe_bind {E : Type -> Type} {R S : Type} (t : itree E R) (k : R -> itree E S)
-  : observe (ITree.bind t k)
+  : observe (t ≫= k)
   = observe (match observe t with
     | RetF r => k r
-    | TauF t0 => Tau (ITree.bind t0 k)
-    | @VisF _ _ _ X e ke => Vis e (fun x : X => ITree.bind (ke x) k)
+    | TauF t0 => Tau (t0 ≫= k)
+    | @VisF _ _ _ X e ke => Vis e (λ x : X, (ke x) ≫= k)
     end).
 Proof. reflexivity. Qed.
 
 #[global]
 Instance observing_bind {E R S} :
-  Proper (observing eq ==> eq ==> observing eq) (@ITree.bind E R S).
+  Proper (eq ==> observing eq  ==> observing eq) (mbind (MBind:=ITree.bind (E:=E)) (A:=R) (B:=S)).
 Proof.
-  repeat intro; subst. constructor. unfold observe. cbn.
-  rewrite (observing_observe H). reflexivity.
+  intros kt ? <- x y Hxy. constructor. rewrite !observe_bind.
+  rewrite (observing_observe Hxy). reflexivity.
 Qed.
 
 Lemma bind_ret_ {E R S} (r : R) (k : R -> itree E S) :
-  observing eq (ITree.bind (Ret r) k) (k r).
+  observing eq (Ret r ≫= k) (k r).
 Proof. constructor; reflexivity. Qed.
 
 Lemma bind_tau_ {E R} U t (k: U -> itree E R) :
-  observing eq (ITree.bind (Tau t) k) (Tau (ITree.bind t k)).
+  observing eq ((Tau t) ≫= k) (Tau (t ≫= k)).
 Proof. constructor; reflexivity. Qed.
 
 Lemma bind_vis_ {E R U V} (e: E V) (ek: V -> itree E U) (k: U -> itree E R) :
   observing eq
-    (ITree.bind (Vis e ek) k)
-    (Vis e (fun x => ITree.bind (ek x) k)).
+    (Vis e ek ≫= k)
+    (Vis e (λ x, ek x ≫= k)).
 Proof. constructor; reflexivity. Qed.
 
 (** Unfolding lemma for [aloop]. There is also a variant [unfold_aloop]
@@ -135,12 +138,12 @@ Proof. constructor; reflexivity. Qed.
 Lemma unfold_aloop_ {E A B} (f : A -> itree E (A + B)) (x : A) :
   observing eq
     (ITree.iter f x)
-    (ITree.bind (f x) (fun lr => ITree.on_left lr l (Tau (ITree.iter f l)))).
+    ((f x) ≫= (fun lr => ITree.on_left lr l (Tau (ITree.iter f l)))).
 Proof. constructor; reflexivity. Qed.
 
 (** Unfolding lemma for [forever]. *)
 Lemma unfold_forever_ {E R S} (t: itree E R):
-  observing eq (@ITree.forever E R S t) (ITree.bind t (fun _ => Tau (ITree.forever t))).
+  observing eq (@ITree.forever E R S t) (t ≫= (fun _ => Tau (ITree.forever t))).
 Proof. econstructor. reflexivity. Qed.
 
 (** ** [going]: Lift relations through [go]. *)

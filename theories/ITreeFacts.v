@@ -3,18 +3,7 @@
 From ITree Require Export
      Basics.Utils
      Basics.Basics
-     Basics.Category
-     Basics.Monad
-     Basics.CategoryKleisli
-     Basics.CategoryKleisliFacts
-     Basics.FunctionFacts
      Core.ITreeDefinition
-     Eq
-     Core.ITreeMonad
-     Core.KTreeFacts
+     Eqit
      Indexed.FunctionFacts
-     Interp.TranslateFacts
-     Interp.InterpFacts
-     Interp.HandlerFacts
-     Interp.RecursionFacts
      .

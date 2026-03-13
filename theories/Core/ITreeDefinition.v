@@ -1,12 +1,11 @@
 (** * Interaction trees: core definitions *)
 
 (* begin hide *)
-Require Import ExtLib.Structures.Functor.
-Require Import ExtLib.Structures.Applicative.
-Require Import ExtLib.Structures.Monad.
-Require Import Program.Tactics.
+
+From stdpp Require Import prelude.
 
 From ITree Require Import Basics.
+From stdpp Require Import options.
 
 Set Implicit Arguments.
 Set Contextual Implicit.
@@ -23,7 +22,7 @@ Set Primitive Projections.
 
 Section itree.
 
-  Context {E : Type -> Type} {R : Type}.
+  Context {E : Type → Type} {R : Type}.
 
   (** The type [itree] is defined as the final coalgebra ("greatest
       fixed point") of the functor [itreeF]. *)
@@ -154,25 +153,21 @@ Module ITree.
    In particular, this allows us to nest [bind] in other cofixpoints,
    as long as the recursive occurences are in the continuation
    (i.e., this makes it easy to define tail-recursive functions). *)
-Definition subst {E : Type -> Type} {T U : Type} (k : T -> itree E U)
-  : itree E T -> itree E U :=
-  cofix _subst (u : itree E T) : itree E U :=
+Global Instance bind {E : Type → Type} : MBind (itree E) :=
+  λ T U (k : T → itree E U),
+  cofix _bind (u : itree E T) : itree E U :=
     match observe u with
     | RetF r => k r
-    | TauF t => Tau (_subst t)
-    | VisF e h => Vis e (fun x => _subst (h x))
+    | TauF t => Tau (_bind t)
+    | VisF e h => Vis e (λ x, _bind (h x))
     end.
-
-Definition bind {E : Type -> Type} {T U : Type} (u : itree E T) (k : T -> itree E U)
-  : itree E U :=
-  subst k u.
 
 (** Monadic composition of continuations (i.e., Kleisli composition).
  *)
 Definition cat {E T U V}
-           (k : T -> itree E U) (h : U -> itree E V) :
-  T -> itree E V :=
-  fun t => bind (k t) h.
+           (k : T → itree E U) (h : U → itree E V) :
+  T → itree E V :=
+  λ t, (k t) ≫= h.
 
 (** [iter]: See [Basics.Basics.MonadIter]. *)
 
@@ -189,9 +184,9 @@ Notation on_left lr l t :=
 
 (* Note: here we must be careful to call [iter_ l] under [Tau] to avoid an eager
    infinite loop if [step i] is always of the form [Ret (inl _)] (cf. issue #182). *)
-Definition iter {E : Type -> Type} {R I: Type}
-           (step : I -> itree E (I + R)) : I -> itree E R :=
-  cofix iter_ i := bind (step i) (fun lr => on_left lr l (Tau (iter_ l))).
+Definition iter {E : Type → Type} {R I: Type}
+           (step : I → itree E (I + R)) : I → itree E R :=
+  cofix iter_ i := (step i) ≫= (λ lr, on_left lr l (Tau (iter_ l))).
 
 (* note(gmm): There needs to be generic automation for monads to simplify
  * using the monad laws up to a setoid.
@@ -202,31 +197,24 @@ Definition iter {E : Type -> Type} {R I: Type}
  *)
 
 (** Functorial map ([fmap] in Haskell) *)
-Definition map {E R S} (f : R -> S)  (t : itree E R) : itree E S :=
-  bind t (fun x => Ret (f x)).
+Global Instance map {E : Type → Type} : FMap (itree E) :=
+  λ A B (f : A → B) t,
+    t ≫= (λ x, Ret (f x)).
 
 (** Atomic itrees triggering a single event. *)
 Definition trigger {E : Type -> Type} : E ~> itree E :=
-  fun R e => Vis e (fun x => Ret x).
+  λ R e, Vis e (λ x, Ret x).
 
 (** Ignore the result of a tree. *)
 Definition ignore {E R} : itree E R -> itree E unit :=
-  map (fun _ => tt).
+  fmap (λ _, tt).
 
 (** Infinite taus. *)
 CoFixpoint spin {E R} : itree E R := Tau spin.
 
 (** Repeat a computation infinitely. *)
 Definition forever {E R S} (t : itree E R) : itree E S :=
-  cofix forever_t := bind t (fun _ => Tau (forever_t)).
-
-Ltac fold_subst :=
-  repeat (change (ITree.subst ?k ?t) with (ITree.bind t k)).
-
-Ltac fold_monad :=
-  repeat (change (@ITree.bind ?E) with (@Monad.bind (itree E) _));
-  repeat (change (go (@RetF ?E _ _ _ ?r)) with (@Monad.ret (itree E) _ _ r));
-  repeat (change (@ITree.map ?E) with (@Functor.fmap (itree E) _)).
+  cofix forever_t := t ≫= (λ _, Tau (forever_t)).
 
 End ITree.
 
@@ -236,45 +224,11 @@ End ITree.
     [Monad], etc. When functions using type classes are specialized,
     they simplify easily, so lemmas without classes are easier
     to apply than lemmas with.
-
-    We can also make ExtLib's [bind] opaque, in which case it still
-    doesn't hurt to have these notations around.
  *)
 
 Module ITreeNotations.
-Notation "t1 >>= k2" := (ITree.bind t1 k2)
-  (at level 58, left associativity) : itree_scope.
-Notation "x <- t1 ;; t2" := (ITree.bind t1 (fun x => t2))
-  (at level 61, t1 at next level, right associativity) : itree_scope.
-Notation "t1 ;; t2" := (ITree.bind t1 (fun _ => t2))
-  (at level 61, right associativity) : itree_scope.
-Notation "' p <- t1 ;; t2" :=
-  (ITree.bind t1 (fun x_ => match x_ with p => t2 end))
-  (at level 61, t1 at next level, p pattern, right associativity) : itree_scope.
-Infix ">=>" := ITree.cat (at level 61, right associativity) : itree_scope.
+  Infix ">=>" := ITree.cat (at level 62, right associativity) : itree_scope.
 End ITreeNotations.
-
-(** ** Instances *)
-
-#[global] Instance Functor_itree {E} : Functor (itree E) :=
-{ fmap := @ITree.map E }.
-
-(* Instead of [pure := @Ret E], [ret := @Ret E], we eta-expand
-   [pure] and [ret] to make the extracted code respect OCaml's
-   value restriction. *)
-#[global] Instance Applicative_itree {E} : Applicative (itree E) :=
-{ pure := fun _ x => Ret x
-; ap := fun _ _ f x =>
-          ITree.bind f (fun f => ITree.bind x (fun x => Ret (f x)))
-}.
-
-#[global] Instance Monad_itree {E} : Monad (itree E) :=
-{| ret := fun _ x => Ret x
-;  bind := @ITree.bind E
-|}.
-
-#[global] Instance MonadIter_itree {E} : MonadIter (itree E) :=
-  fun _ _ => ITree.iter.
 
 (** ** Tactics *)
 
@@ -283,6 +237,16 @@ End ITreeNotations.
 Lemma hexploit_mp: forall P Q: Type, P -> (P -> Q) -> Q.
 Proof. intuition. Defined.
 Ltac hexploit x := eapply hexploit_mp; [eapply x|].
+
+Ltac on_last_hyp tac :=
+  match goal with [ H : _ |- _ ] => first [ tac H | fail 1 ] end.
+
+Ltac revert_until id :=
+  on_last_hyp ltac:(fun id' =>
+    match id' with
+      | id => idtac
+      | _ => revert id' ; revert_until id
+    end).
 
 Tactic Notation "hinduction" hyp(IND) "before" hyp(H)
   := move IND before H; revert_until IND; induction IND.
@@ -315,3 +279,5 @@ Fixpoint burn (n : nat) {E R} (t : itree E R) :=
     | TauF t' => burn n t'
     end
   end.
+
+Definition ktree (E : Type → Type) a b : Type := a → itree E b.
